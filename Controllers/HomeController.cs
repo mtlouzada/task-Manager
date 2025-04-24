@@ -8,39 +8,41 @@ namespace TaskManager.Controllers
     public class HomeController : ControllerBase
     {
         [HttpGet("/")]
-       public List<TaskModel> Get([FromServices] AppDbContext context)
-        {
-            return context.Tasks.ToList();
-        }
+       public IActionResult Get([FromServices] AppDbContext context)
+            => Ok(context.Tasks.ToList());
 
         [HttpGet("/{id:int}")]
-       public TaskModel GetById(
+       public IActionResult GetById(
         [FromRoute] int id,
         [FromServices] AppDbContext context)
         {
-            return context.Tasks.FirstOrDefault(x => x.Id == id);
+            var task = context.Tasks.FirstOrDefault(x => x.Id == id);
+             if (task == null)
+                return NotFound();
+
+            return Ok(task);
         }
 
-        [HttpPost("/task")]
-        public TaskModel Post(
+        [HttpPost("/")]
+        public IActionResult Post(
         [FromBody] TaskModel task,
         [FromServices] AppDbContext context)
         {
             context.Tasks.Add(task);
             context.SaveChanges();
 
-            return task;
+            return Created($"/{task.Id}", task);
         }
 
         [HttpPut("/{id:int}")]
-        public TaskModel Put(
+        public IActionResult Put(
             [FromRoute] int id,
             [FromBody] TaskModel task,
             [FromServices] AppDbContext context)
         {
             var model = context.Tasks.FirstOrDefault(x => x.Id == id);
             if (model == null)
-                return task;
+                return NotFound();
 
             model.Title = task.Title;
             model.Done = task.Done;
@@ -49,19 +51,21 @@ namespace TaskManager.Controllers
             context.Tasks.Update(model);
             context.SaveChanges();
 
-            return model;
+            return Ok(model);
         }
 
         [HttpDelete("/{id:int}")]
-        public TaskModel Delete(
+        public IActionResult Delete(
             [FromRoute] int id,
             [FromServices] AppDbContext context)
         {
             var model = context.Tasks.FirstOrDefault(x => x.Id == id);
+            if (model == null)
+                return NotFound();
          
             context.Tasks.Remove(model);
             context.SaveChanges();
-            return model;
+            return Ok(model);
         }
 
     }
