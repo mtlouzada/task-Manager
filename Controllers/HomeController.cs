@@ -13,7 +13,15 @@ namespace TaskManager.Controllers
             return context.Tasks.ToList();
         }
 
-        [HttpGet("/")]
+        [HttpGet("/{id:int}")]
+       public TaskModel GetById(
+        [FromRoute] int id,
+        [FromServices] AppDbContext context)
+        {
+            return context.Tasks.FirstOrDefault(x => x.Id == id);
+        }
+
+        [HttpPost("/task")]
         public TaskModel Post(
         [FromBody] TaskModel task,
         [FromServices] AppDbContext context)
@@ -24,23 +32,37 @@ namespace TaskManager.Controllers
             return task;
         }
 
-        // public TaskModel Put(
-        //     [FromBody] TaskModel task,
-        //     [FromServices] AppDbContext context)
-        // {
-        //     context.Tasks.Update(task);
-        //     context.SaveChanges();
-        //     return task;
-        // }
+        [HttpPut("/{id:int}")]
+        public TaskModel Put(
+            [FromRoute] int id,
+            [FromBody] TaskModel task,
+            [FromServices] AppDbContext context)
+        {
+            var model = context.Tasks.FirstOrDefault(x => x.Id == id);
+            if (model == null)
+                return task;
 
-        // public void Delete(
-        //     int id,
-        //     [FromServices] AppDbContext context)
-        // {
-        //     var task = new TaskModel { Id = id };
-        //     context.Tasks.Remove(task);
-        //     context.SaveChanges();
-        // }
-        // [HttpGet("/tasks/{id}")]    
+            model.Title = task.Title;
+            model.Done = task.Done;
+
+
+            context.Tasks.Update(model);
+            context.SaveChanges();
+
+            return model;
+        }
+
+        [HttpDelete("/{id:int}")]
+        public TaskModel Delete(
+            [FromRoute] int id,
+            [FromServices] AppDbContext context)
+        {
+            var model = context.Tasks.FirstOrDefault(x => x.Id == id);
+         
+            context.Tasks.Remove(model);
+            context.SaveChanges();
+            return model;
+        }
+
     }
 }
